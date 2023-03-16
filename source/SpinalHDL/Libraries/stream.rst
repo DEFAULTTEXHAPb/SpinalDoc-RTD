@@ -534,6 +534,62 @@ This util take its input stream and routes it to ``outputCount`` stream in a seq
      outputCount = 3
    )
 
+
+StreamTransactionExtender
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This util take its input stream and insert ``count`` additional samples between input stream samples with rule, defined by function ``driver: (a: UInt, b: T, c: Bool) => x: T2``.
+Where:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 1 1 3
+
+   * - Parameter
+     - Type
+     - Description
+   * - ``a``
+     - ``UInt``
+     - Stream Transaction Counter value. Counter runs in range 0 to ``count-1``
+   * - ``b``
+     - ``T``
+     - Input Stream sample value
+   * - ``c``
+     - ``Bool``
+     - Stream Transaction Counter overflow condition
+
+.. list-table:: StreamTransactionExtender parameters
+   :header-rows: 1
+   :widths: 1 1 3
+
+   * - Parameter
+     - Type
+     - Description
+   * - ``input``
+     - ``Stream[T]``
+     - Input Stream
+   * - ``output``
+     - ``Stream[T2]``
+     - Output Stream with inserted samples
+   * - ``count``
+     - ``UInt``
+     - Number of samples to insert between input stream samples
+
+.. note:: Example:
+
+To implement simple stream upsampler for DSP purposes that insert ``resamplingRate - 1`` zeros between samples of ``sourceStream`` and translate it to ``sinkStream`` it's enough to write following code
+
+.. code-block:: scala
+
+  StreamTransactionExtender(input = sourceStream, output = sinkStream, count = resamplingRate - 1) { (_, p, zero) =>
+    val retVal: T = dataType()
+    retVal.assignFromBits(B(0, dataType.getBitsWidth bits))
+    when(zero) {
+      retVal := p
+    }
+    retVal
+  }  
+
 Simulation support
 ------------------
 
